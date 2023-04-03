@@ -8,7 +8,7 @@ The Tableau Visualizations for this project can be viewed using the following li
 https://public.tableau.com/app/profile/alejandro7163/viz/SQLProjectVisualizationsonUdemyCourseRatingsDataset/UdemysSitewideCustomerFeedback
 
 ## Applied Skills:
-SQL Skills: CTEs, Aggregate Functions, Window Functions, Conditions, Joins, Temp Tables, and Subqueries, Table Creation, Conditional Formatting, Updating Tables, String Manipulations, and Null Identification and Correction.
+SQL Skills: CTEs, Aggregate Functions, Window Functions, Conditions, Joins, Temp Tables, and Subqueries, Table Creation, Conditional Formatting, Updating Tables, String Manipulations, and Null Identification and Correction.  
 Tableau Skills: Dashboard Creation, Line Graph, Pie Chart, Box and Whisker Plot, Informational Pop-Outs, Aggregate Functions
 
 ## The general workflow of the project is as follows:
