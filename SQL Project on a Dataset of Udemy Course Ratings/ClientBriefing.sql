@@ -1,0 +1,25 @@
+-- In a hypothetical scenario, I've been asked to compose two dashboards with the
+-- following data from the Udemy datasets:
+
+-------------------------------------------------------------------------------------
+-- A dashboard that focuses on customer satisfaction
+-------------------------------------------------------------------------------------
+--	1. Overall net promoter score (% promoters - % detractors) assuming promoters
+--  	gave a score of 4 or higher and detractors gave a score less than 3
+-- 	2. The yearly trend of the overall net promoter score.
+--	3. Average ratings left by customers each year.
+-- 	4. Show how the positive and negative ratings have changed over time. Assume a
+--  positive rating is above or equal to 2.5 and a negative rating is below a 2.5.
+
+-------------------------------------------------------------------------------------
+-- A dashboard that focuses on the trends of customer engagement with feedback channels
+-------------------------------------------------------------------------------------
+--	1. Number of comments left each year, sitewide.
+-- 	2. For the courses that have comments, provide the average amount of days it takes
+--  for a course to receive its first comments after its publication date. In addition,
+--  summarize the distribution the days it takes a course to recieve its first comments,
+--	sitewide.
+-- 	3. A quantitative breakdown of the categories responsible for generating the
+--	 most customer feedback (reviews + comments).
+--	4. Provide the average, sitewide conversion rate for subscribers to give any sort
+--  of feedback action (review or comment) after taking a course.
