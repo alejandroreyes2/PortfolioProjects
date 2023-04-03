@@ -1,0 +1,225 @@
+---
+title: "RNA-seq Report"
+author: "Alejandro Reyes, asr2878"
+date: "11/9/2021"
+output: html_document
+---
+
+This project was conducted to understand how the differences in gene expression 
+between time of collection vary by genotypes of *Arabidopsis thaliana*. This code 
+uses DESeq to identify genes with significant interaction terms between time and
+genotype. Here is the given descriptions for the genotypes of the plant 
+*Arabidopsis thaliana*:
+1. Col wild-type *Arabidopsis thaliana*.
+2. 14B a mutant lacking two genes for a plant specific translation initiation 
+   factor, eIFiso4G1 (AT5g57870) and eIFiso4G2 (At2g24050).
+3. 4G a mutant lacking the one gene for eIF4G (AT3g60240), a translation factor 
+   that is more  similar to those of other eukaryotes.
+
+```{r message=FALSE}
+source("bio321g_rnaseq_utils.R")
+library(BiocParallel)
+register(SnowParam(4))
+library(DESeq2)
+library(ggplot2)
+library(pheatmap)
+```
+
+# 1. 
+Initially a DESeqDataSeq object, "dds" was created to test the significance, if 
+any, of the interaction term time:genotype from the genes that had sufficient 
+expression levels. 1429 genes had a significant interaction term (FDR ≤ 0.10). 
+Of these genes, 142.9 are expected to be false discoveries. This was determined 
+by multiplying the number of expected genes (1429) by the false discovery rate 
+(FDR = .10).
+```{r message=FALSE}
+dds = DESeqDataSetFromMatrix(
+  countData = rnaCounts,
+  colData = sampleAnnotation,
+  design = ~ time + genotype + time:genotype)
+
+dds = DESeq(dds, test = "LRT", reduced = ~ time + genotype, parallel=TRUE)
+interaction_results = results(dds)
+interaction_results = interaction_results[order(interaction_results$pvalue),]
+
+testedGenes = which(!is.na(interaction_results$padj))  # actual num of sig tests
+# NA implies the gene expression was too low
+
+FDR = .1  # control on padj
+numGenesSigIR = sum(interaction_results[testedGenes, "padj"] <= FDR)
+numExpectedFalseDiscoveries = numGenesSigIR * FDR
+```
+
+
+# 2.
+The normalized counts from dds, after the data was normalized with the DESeq 
+function, were then extracted. These counts were then filtered by removing genes
+without sufficient data. The data was log2 transformed with an offset of 1 to 
+reduce heteroskedacity.
+```{r}
+normed = counts(dds, normalized=TRUE)
+normed = normed[rowSums(normed) > 0,] # remove genes with no data
+lgNorm = log2(normed + 1) # log transform; satisfies heteroskedacity
+```
+
+# 3.
+A PCA plot was then constructed using the transformed data. Visually, the 
+samples collected in the dark were most separated from the samples collected in
+the light along the PC1 direction (dark was oriented in the positive side of the
+plot while light was negative). Using a similar visual analysis, the Col and 4G 
+genotypes of *Arabidopsis thaliana* were most separated from the 14B genotype 
+along the PC2 direction.
+```{r}
+pca_lgNorm = prcomp(t(lgNorm))
+
+pca_lgNorm_annotation = data.frame(
+  row.names = colnames(normed),
+  group = gsub("^X|\\d$", "", colnames(normed))
+)
+
+## set up data.frame pcaData for ggplot...
+pcaData = data.frame(pca_lgNorm$x[ , 1:2])
+## add in sample annotation info
+pcaData$group = pca_lgNorm_annotation[rownames(pcaData), "group"]
+## and sample names
+pcaData$sample = rownames(pcaData)
+
+gg = ggplot(pcaData, aes(x=PC1, y=PC2, color=group, label=sample))
+gg = gg + geom_point(size=2.5, alpha=0.75)
+gg = gg + scale_color_manual(values=groupColors)
+print(gg)
+```
+
+# 4. 
+A vector was created containing the assigned genes (gene_ontology_primary_id 
+value of GO:0071495). From the assigned genes, the gene ID, gene symbol, and 
+gene description were complied in a tsv file (attached and) named 
+assigned_gene_set.tsv which has been provided.
+```{r}
+# get assigned gene set
+target_set = goAssociations[goAssociations$gene_ontology_primary_id 
+                            == "GO:0071495",]
+# length of 82
+
+# df with gene id, symbol, and description
+assigned_genes = geneNamesAndDescriptions[
+                    is.element(geneNamesAndDescriptions$gene, target_set$gene),]
+row.names(assigned_genes) = NULL
+
+# write .tsv file
+write.table(assigned_genes, file="assigned_gene_set.tsv", 
+            quote=FALSE, row.names = FALSE, sep="\t")
+```
+
+
+# 5. 
+The normalized (and transformed) data was further refined to only include the 
+genes assigned.
+```{r}
+lgGO = lgNorm[is.element(row.names(lgNorm), target_set$gene),]
+```
+
+# 6.
+A principal components analysis was then preformed on this data (lgGO). Similar 
+to the previous PCA plot, the  samples were separated based on time of 
+collection along the PC1 axis (the dark samples were centered around 5 while the
+day samples were centered around -6). Interestingly, the separation of the 
+genotypes were inverted from the previous full gene set PCA plot; the 14B 
+genotypes were more negative (~-3) along the PC2 axis while the Col and 4G 
+genotypes were more positive (~2 with an outlier at ~4).
+```{r}
+pca_lgGO = prcomp(t(lgGO))
+pcaDatalgGO = data.frame(pca_lgGO$x[ , 1:2])
+pcaDatalgGO$group = pca_lgNorm_annotation[rownames(pcaDatalgGO), "group"]
+pcaDatalgGO$sample = rownames(pcaDatalgGO)
+gg2 = ggplot(pcaDatalgGO, aes(x=PC1, y=PC2, color=group, label=sample))
+gg2 = gg2 + geom_point(size=2.5, alpha=0.75)
+gg2 = gg2 + scale_color_manual(values=groupColors)
+print(gg2)
+```
+
+# 7.
+The differences in the log-transformed normalized expression level and the mean 
+expression level of each of these genes were stored in heatData. A clustered 
+heatmap was then constructed using this data and the pheatmap function. The 
+expression level in heatData was limited by setting values greater than 2 equal 
+to 2 and values less than -2 equal to -2. This was done to make the resulting 
+pheatmap more readable and to prevent the overabundance of a few individual 
+colors.
+
+The two largest clusters were found in the upper left and right corners of the 
+heatmap. The genes in the upper left corner of the heatmap have mostly low 
+expression. It is interesting to note that these samples were all collected in 
+the light and were independent of the genotype. The genes in the upper right 
+corner of the heatmap have an above average rate of expression. These samples 
+were also independent of genotype but were dependent on the time of collection 
+being dark. The LHCB2.2 gene was highly expressed when the sample was collected 
+in the dark and inhibited when collected in the light. There were also two more 
+clusters that formed on the lower corners of the heatmap. They showed an inverse
+relationship of expression and time of collection than that of the two larger 
+clusters mentioned previously. 
+```{r fig.asp = 1.25}
+heatData = lgGO - rowMeans(lgGO)
+heatData[heatData > 2] = 2; heatData[heatData < -2] = -2
+# help("pheatmap")
+pheatmap(
+  heatData,
+  heatPalette,
+  clustering_method = "average",
+  # show_rownames = FALSE, 
+  labels_row=geneNamesAndDescriptions[rownames(heatData), "symbol"],
+  cellheight = 5,
+  cellwidth = 20,
+  fontsize_row = 5,
+  fontsize_col = 5,
+  angle_col = 90
+)
+```
+
+# 8.
+Lastly, the lgGO data was filtered by the lowest interaction term 
+(time:genotype) according to pvalues in the DESeq results of the dds object. 
+The 9 genes with this lowest interaction term were then used to construct a 
+stripchart with the provided stripchart321g function. 
+
+The LHCB2.2, CKA4, bHLH129, KNAT5, PUB9, and MAPKKK5 genes generally had greater
+levels of expression in the samples collected in the dark than in the light 
+across all genotypes (MAPKKK5 had an overlap in genotypes 4G and COL while PUB9 
+had an overlap in 14B and 4G). The IRT1, UF3GT, and SAG29 genes had cases where 
+this relationship was inverted: in the 14B and 4G genotypes of SAG29, the 14B 
+genotype of IRT1, and across all genotypes of UF3GT. The most extreme cases of 
+differences in expression between timepoints that vary across genotypes were 
+seen in the genes CKA4, PUB9, SAG9, UF3GT, and IRT1. In these genes, two of the
+genotypes had similar expression levels while one was visually different. In the
+case of SAG29 and PUB9, the outlying genotype was COL; the light samples were 
+less expressed while the dark samples were more expressed than the other two 
+genotypes. In CKA4 and UF3GT, the 14B genotype was significantly different from 
+the other two. In both genes, the light samples were more expressed. In the IRT1 
+gene, the light sample of the 4G genotype was more expressed than its 
+counterparts in the other two genotypes. KNAT5 and LHCB2.2 had relatively 
+similar expression levels across genotypes except for one light sample being 
+expressed less than the others (the 14B genotype of LHCB2.2 and the COL genotype
+of KNAT5). In MAPKKK5, dark samples were similarly expressed while the light 
+samples of the three genotypes had no similarity between each other; the 14B 
+genotype had the lowest expression levels, 4G had the second lowest, and COL had
+the highest. It would be best to describe the mean of expression levels and the 
+margin of the differential expression between timepoints since there was next to
+no overlap in the samples of the bHLH129 gene. The mean expression, in ascending
+order by genotype, is COL, 14B, and 4G while the greatest margin of differential
+expression between timepoints, in ascending order by genotype, is 14B, COL, and 
+4G.
+```{r message=FALSE}
+# use previous deseq results but only include assigned genes
+# top 9 genes with the smallest p values
+reduced_DESeq = interaction_results[is.element(row.names(interaction_results), 
+                                              target_set$gene), ]
+reduced_DESeq = reduced_DESeq[order(reduced_DESeq$pvalue), ]
+reduced_DESeq = reduced_DESeq[1:9, ]
+reduced_lgGO = lgGO[is.element(row.names(lgGO), row.names(reduced_DESeq)), ]
+stripchart_rlgGO = stripchart321g(
+                                  reduced_lgGO,
+                                  sampleAnnotation,
+                                  geneNames = geneNamesAndDescriptions,
+                                  colorValues = groupColors)
+stripchart_rlgGO
+```
