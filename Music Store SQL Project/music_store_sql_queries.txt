@@ -1,0 +1,113 @@
+/*
+
+Music Store SQL Project – Udacity Project
+
+Skills used: CTE, Joins, Aggregate Functions, Calculated Columns,
+	     Converting Datetime to String, Subqueries
+
+*/
+
+/* Query 1 */
+
+-- Using CTE to group number of tracks sold by artist
+-- and then selecting the top artist.
+-- Then filtering the rest of the data by joining to CTE.
+
+WITH num_songs_sold_by_artist AS (
+  SELECT
+    r.name,
+    COUNT(l.trackid) num_sold
+  FROM
+    invoiceline l
+    JOIN track t ON l.trackid = t.trackid
+    JOIN album a ON t.albumid = a.albumid
+    JOIN artist r ON a.artistid = r.artistid
+  GROUP BY 1
+  ORDER BY 2 DESC
+  LIMIT 1
+)
+SELECT
+  c.country,
+  COUNT(c.customerid) AS "Number of Sales"
+FROM
+  customer c
+  JOIN invoice i ON c.customerid = i.customerid
+  JOIN invoiceline l ON i.invoiceid = l.invoiceid
+  JOIN track t ON l.trackid = t.trackid
+  JOIN album a ON t.albumid = a.albumid
+  JOIN artist r ON a.artistid = r.artistid
+  JOIN num_songs_sold_by_artist n ON r.name = n.name
+GROUP BY 1
+ORDER BY 2 DESC
+
+
+
+/* Query 2 */
+
+-- A CTE was used to determine the total earnings
+-- of each track.
+-- The tracks were then grouped by playlist and
+-- the total earnings were then summed.
+
+WITH earnings_by_track AS (
+  SELECT
+    t.trackid,
+    SUM(l.unitprice) total_earnings
+  FROM
+    track t
+    JOIN invoiceline l ON l.trackid = t.trackid
+    JOIN invoice i ON i.invoiceid = l.invoiceid
+  GROUP BY 1
+)
+SELECT
+  p.name,
+  SUM(e.total_earnings) AS "Total Earnings"
+FROM
+  earnings_by_track e
+  JOIN playlisttrack pt ON e.trackid = pt.trackid
+  JOIN playlist p ON pt.playlistid = p.playlistid
+GROUP BY 1
+ORDER BY 2 DESC
+
+
+
+/* Query 3 */
+
+-- Convert the year in datetime to a string
+-- and then count number of tracks sold by year.
+
+SELECT
+  STRFTIME('%Y', i.invoicedate) AS "Year",
+  COUNT(l.trackid) AS "Number of Tracks Sold"
+FROM
+  invoice i
+  JOIN invoiceline l ON i.invoiceid = l.invoiceid
+  JOIN track t ON l.trackid = t.trackid
+  JOIN album a ON t.albumid = a.albumid
+  JOIN artist r ON a.artistid = r.artistid
+WHERE
+  r.name = 'Iron Maiden'
+GROUP BY 1
+ORDER BY 2 DESC
+
+
+
+/* Query 4 */
+
+-- Determine where the invoice cost was the largest
+-- and then determine the relative cost of each track
+-- found on the invoice.
+
+SELECT
+  t.name track_name,
+  l.unitprice track_cost,
+  l.unitprice/i.total AS "% of Total Invoice Cost"
+FROM
+  invoice i
+  JOIN invoiceline l ON i.invoiceid = l.invoiceid
+  JOIN track t ON l.trackid = t.trackid
+WHERE
+  i.total = (
+    SELECT MAX(total)
+    FROM invoice
+  )
