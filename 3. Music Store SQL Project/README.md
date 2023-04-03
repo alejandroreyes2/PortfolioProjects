@@ -3,8 +3,8 @@
 This SQL project analyzes data from a music store database to answer the following questions: What is the most popular artist’s number of sales by country? What playlist has the highest total sales from its songs? In what year did Iron Maiden sell the most songs? What percentage of the largest total priced invoice did each of its tracks occupy?
 
 ## Applied Skills:
-SQL: CTE, Joins, Subqueries, Aggregate Functions, Converting Datetime to String, Calculated Columns
-Excel: Exported query results from SQL to compose relevant data visualizations
+SQL: CTE, Joins, Subqueries, Aggregate Functions, Converting Datetime to String, Calculated Columns  
+Excel: Exported query results from SQL to compose relevant data visualizations  
 Microsoft PowerPoint: Used to aggregate and display the findings informatively and intuitively
 
 ## The general workflow of the project is as follows:
