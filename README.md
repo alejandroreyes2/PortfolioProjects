@@ -1,5 +1,7 @@
 # PortfolioProjects
-Throughout this portfolio, you will find a collection of projects that showcase my use of Python, R, SQL, and Tableau. Each project has its own README file that goes into more depth than the brief synopses that can be seen below. 
+Throughout this portfolio, you will find a collection of projects that showcase my use of Python, SQL, R, Excel and Tableau. Each project has its own README file that goes into more depth than the brief synopses that can be seen below. 
+
+Featured Projects:
 
 1. 2019 Flight Data Exploratory Data Analysis in Python – Personal Project	(_March 2023_)
 - Used Python to investigate and make sense of a dataset with over 6.4 million records
@@ -23,3 +25,10 @@ https://public.tableau.com/app/profile/alejandro7163/viz/SQLProjectVisualization
 - Used R to understand differences in gene expression between time of collection vary by genotypes of Arabidopsis thaliana  
 - Principal Component Analysis was done using the function prcomp
 - The libraries ggplot and pheatmap were used to show the separation of genotypes and to visualize clusters
+
+Other projects:
+
+1. Analysis of Data Profession Salaries – Personal Project	(_May 2023_)
+- Used Excel to investigate and manipulate data to create an interactive dashboard that highlights key statistics relative to job availability and compensation
+- Utilized vlookup to supplement the existing data table with information from another data table.
+- Implemented custom formulas (with nested if, string functions, etc) to create calculated columns and modify existing columns
