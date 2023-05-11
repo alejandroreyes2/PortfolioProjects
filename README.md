@@ -28,7 +28,7 @@ https://public.tableau.com/app/profile/alejandro7163/viz/SQLProjectVisualization
 
 Other projects:
 
-1. Analysis of Data Profession Salaries – Personal Project	(_May 2023_)
+Analysis of Data Profession Salaries – Personal Project	(_May 2023_)
 - Used Excel to investigate and manipulate data to create an interactive dashboard that highlights key statistics relative to job availability and compensation
 - Utilized vlookup to supplement the existing data table with information from another data table.
 - Implemented custom formulas (with nested if, string functions, etc) to create calculated columns and modify existing columns
