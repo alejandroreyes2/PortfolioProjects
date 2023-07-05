@@ -17,14 +17,14 @@ https://www.kaggle.com/datasets/threnjen/2019-airline-delays-and-cancellations?s
 
 ## The general workflow of the project is as follows:
 1. Data Preparation and Cleaning
-  a. Understand the columns
-  b. Clean the column names and decode column values
-  c. Check for and correct nulls
+   a. Understand the columns
+   b. Clean the column names and decode column values
+   c. Check for and correct nulls
 2. Feature analysis
-  a. Univariate analysis
-  b. Bivariate analysis with the target variable
-  c. Multivariate analysis with target variable and other selected features
-  d. Visualizations were present throughout a-c
+   a. Univariate analysis
+   b. Bivariate analysis with the target variable
+   c. Multivariate analysis with target variable and other selected features
+   d. Visualizations were present throughout a-c
 3. Answering any remaining questions after going through steps 1 and 2.
 
 ## Favorite insight from the project:
